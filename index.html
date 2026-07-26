@@ -3,11 +3,11 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AI Quran Tilawat Generator</title>
+    <title>AI Qari Tilawat Studio - Branding Edition</title>
     <style>
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: linear-gradient(135deg, #0f2027, #203a43, #2c5364);
+            background: linear-gradient(135deg, #050b14, #0f172a, #1e293b);
             color: #ffffff;
             margin: 0;
             padding: 0;
@@ -17,87 +17,114 @@
             min-height: 100vh;
         }
         .container {
-            background: rgba(255, 255, 255, 0.05);
-            backdrop-filter: blur(10px);
-            border: 1px solid rgba(255, 255, 255, 0.1);
+            background: rgba(15, 23, 42, 0.8);
+            backdrop-filter: blur(15px);
+            border: 1px solid rgba(212, 175, 55, 0.3);
             padding: 30px;
-            border-radius: 15px;
-            box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+            border-radius: 20px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.6);
             width: 90%;
             max-width: 500px;
             text-align: center;
         }
         h2 {
-            margin-bottom: 20px;
+            margin-bottom: 5px;
             color: #d4af37;
+            font-size: 24px;
+        }
+        .brand-subtitle {
+            font-size: 13px;
+            color: #94a3b8;
+            margin-bottom: 20px;
+            letter-spacing: 1px;
         }
         textarea {
             width: 100%;
-            height: 120px;
-            background: rgba(0, 0, 0, 0.3);
+            height: 130px;
+            background: rgba(0, 0, 0, 0.4);
             border: 1px solid #d4af37;
-            border-radius: 8px;
+            border-radius: 10px;
             color: #fff;
-            padding: 12px;
+            padding: 15px;
             font-size: 18px;
             resize: none;
             outline: none;
             box-sizing: border-box;
             text-align: right;
+            line-height: 1.6;
         }
         textarea::placeholder {
-            color: #aaa;
+            color: #64748b;
+        }
+        .btn-group {
+            display: flex;
+            gap: 10px;
+            margin-top: 15px;
         }
         button {
             background: #d4af37;
             color: #000;
             border: none;
-            padding: 12px 25px;
-            font-size: 16px;
+            padding: 12px;
+            font-size: 15px;
             font-weight: bold;
             border-radius: 8px;
             cursor: pointer;
-            margin-top: 15px;
-            width: 100%;
+            flex: 1;
             transition: 0.3s;
         }
         button:hover {
-            background: #f39c12;
+            background: #eab308;
+        }
+        button.secondary {
+            background: transparent;
+            border: 1px solid #d4af37;
+            color: #d4af37;
+        }
+        button.secondary:hover {
+            background: rgba(212, 175, 55, 0.1);
         }
         .status {
             margin-top: 15px;
             font-size: 14px;
-            color: #00ffcc;
+            color: #38bdf8;
+            min-height: 20px;
+        }
+        audio {
+            width: 100%;
+            margin-top: 15px;
+            display: none;
         }
     </style>
 </head>
 <body>
 
     <div class="container">
-        <h2>AI Tilawat Generator</h2>
-        <textarea id="arabicText" placeholder="Yahan Arabic mein Surah ya Ayat likhein... (Jaise: بِسْمِ اللَّهِ الرَّحْمَٰنِ الرَّحِيمِ)"></textarea>
-        <button onclick="playTilawat()">Tilawat Shuru Karein</button>
+        <h2>AI Qari Studio</h2>
+        <div class="brand-subtitle">PRO PROFESSIONAL QIRAT GENERATOR</div>
+        
+        <textarea id="arabicText" placeholder="Yahan Surah ya Ayat likhein (Misal: بِسْمِ اللَّهِ الرَّحْمَٰنِ الرَّحِيمِ)..."></textarea>
+        
+        <div class="btn-group">
+            <button onclick="playTilawat()">Tilawat Suniye</button>
+            <button class="secondary" id="downloadBtn" onclick="downloadAudio()" style="display:none;">Download Audio</button>
+        </div>
+
         <div class="status" id="statusText"></div>
+        <audio id="audioPlayer" controls></audio>
     </div>
 
     <script>
         let synth = window.speechSynthesis;
-        let voices = [];
-
-        function loadVoices() {
-            voices = synth.getVoices();
-        }
-
-        if (speechSynthesis.onvoiceschanged !== undefined) {
-            speechSynthesis.onvoiceschanged = loadVoices;
-        }
+        let currentUtterance = null;
 
         function playTilawat() {
             let text = document.getElementById("arabicText").value;
             let status = document.getElementById("statusText");
+            let downloadBtn = document.getElementById("downloadBtn");
 
             if (text.trim() === "") {
-                status.innerText = "Pehle kuch Arabic text likhein!";
+                status.innerText = "Pehle kuch Arabic text darj karein!";
                 return;
             }
 
@@ -106,29 +133,36 @@
             }
 
             let utterance = new SpeechSynthesisUtterance(text);
+            let voices = synth.getVoices();
             
-            // Arabic voice dhundna
-            loadVoices();
-            let arabicVoice = voices.find(v => v.lang.startsWith('ar') || v.lang.includes('AR') || v.lang.includes('ar-'));
+            // Male deep Arabic voice filter karne ki koshish
+            let qariVoice = voices.find(v => (v.lang.includes('ar') || v.lang.includes('AR')) && (v.name.toLowerCase().includes('male') || v.name.toLowerCase().includes('saudi') || v.name.toLowerCase().includes('rashid') || v.name.toLowerCase().includes('naif')));
             
-            if (arabicVoice) {
-                utterance.voice = arabicVoice;
+            if (!qariVoice) {
+                qariVoice = voices.find(v => v.lang.startsWith('ar') || v.lang.includes('ar-'));
             }
-            
+
+            if (qariVoice) {
+                utterance.voice = qariVoice;
+            }
+
             utterance.lang = 'ar-SA';
-            utterance.rate = 0.8; // Aahista speed taaki qirat jaisa lage
-            utterance.pitch = 1.0;
+            utterance.rate = 0.75; // Qirat jaisi halki raftar taaki dard aur thumak mehsoos ho
+            utterance.pitch = 0.8;  // Pitch low ki hai taaki Qari jaisi bhari aur roohani male voice lage
 
             utterance.onstart = function() {
-                status.innerText = "Tilawat ho rahi hai...";
+                status.innerText = "Roohani Tilawat taiyar ho rahi hai...";
+                downloadBtn.style.display = "none";
             }
 
             utterance.onend = function() {
-                status.innerText = "Tilawat mukammal ho gayi!";
+                status.innerText = "Tilawat mukammal ho gayi hai!";
+                // Note: Browser ki Web Speech API direct audio blob export nahi karti, 
+                // isliye pure Qari level ke export ke liye backend par ElevenLabs API lagana parti hai.
             }
 
             utterance.onerror = function() {
-                status.innerText = "Koi masla aa gaya hai.";
+                status.innerText = "Voice generation mein koi kharabi aayi hai.";
             }
 
             synth.speak(utterance);
@@ -136,4 +170,3 @@
     </script>
 </body>
 </html>
-

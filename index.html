@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Quran Tilawat Generator</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #0f2027, #203a43, #2c5364);
+            color: #ffffff;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+        }
+        .container {
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+            width: 90%;
+            max-width: 500px;
+            text-align: center;
+        }
+        h2 {
+            margin-bottom: 20px;
+            color: #d4af37;
+        }
+        textarea {
+            width: 100%;
+            height: 120px;
+            background: rgba(0, 0, 0, 0.3);
+            border: 1px solid #d4af37;
+            border-radius: 8px;
+            color: #fff;
+            padding: 12px;
+            font-size: 18px;
+            resize: none;
+            outline: none;
+            box-sizing: border-box;
+            text-align: right;
+        }
+        textarea::placeholder {
+            color: #aaa;
+        }
+        button {
+            background: #d4af37;
+            color: #000;
+            border: none;
+            padding: 12px 25px;
+            font-size: 16px;
+            font-weight: bold;
+            border-radius: 8px;
+            cursor: pointer;
+            margin-top: 15px;
+            width: 100%;
+            transition: 0.3s;
+        }
+        button:hover {
+            background: #f39c12;
+        }
+        .status {
+            margin-top: 15px;
+            font-size: 14px;
+            color: #00ffcc;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <h2>AI Tilawat Generator</h2>
+        <textarea id="arabicText" placeholder="Yahan Arabic mein Surah ya Ayat likhein... (Jaise: بِسْمِ اللَّهِ الرَّحْمَٰنِ الرَّحِيمِ)"></textarea>
+        <button onclick="playTilawat()">Tilawat Shuru Karein</button>
+        <div class="status" id="statusText"></div>
+    </div>
+
+    <script>
+        let synth = window.speechSynthesis;
+        let voices = [];
+
+        function loadVoices() {
+            voices = synth.getVoices();
+        }
+
+        if (speechSynthesis.onvoiceschanged !== undefined) {
+            speechSynthesis.onvoiceschanged = loadVoices;
+        }
+
+        function playTilawat() {
+            let text = document.getElementById("arabicText").value;
+            let status = document.getElementById("statusText");
+
+            if (text.trim() === "") {
+                status.innerText = "Pehle kuch Arabic text likhein!";
+                return;
+            }
+
+            if (synth.speaking) {
+                synth.cancel();
+            }
+
+            let utterance = new SpeechSynthesisUtterance(text);
+            
+            // Arabic voice dhundna
+            loadVoices();
+            let arabicVoice = voices.find(v => v.lang.startsWith('ar') || v.lang.includes('AR') || v.lang.includes('ar-'));
+            
+            if (arabicVoice) {
+                utterance.voice = arabicVoice;
+            }
+            
+            utterance.lang = 'ar-SA';
+            utterance.rate = 0.8; // Aahista speed taaki qirat jaisa lage
+            utterance.pitch = 1.0;
+
+            utterance.onstart = function() {
+                status.innerText = "Tilawat ho rahi hai...";
+            }
+
+            utterance.onend = function() {
+                status.innerText = "Tilawat mukammal ho gayi!";
+            }
+
+            utterance.onerror = function() {
+                status.innerText = "Koi masla aa gaya hai.";
+            }
+
+            synth.speak(utterance);
+        }
+    </script>
+</body>
+</html>
+
